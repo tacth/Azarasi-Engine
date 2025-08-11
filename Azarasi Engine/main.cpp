@@ -1,13 +1,14 @@
+#include <Windows.h>
+#include <stdio.h>
+#include<math.h>
 #include <GL/glut.h>
+
+#include "obj.h"
 
 // グローバル変数
 
 // ウィンドウのサイズ
 int win_width, win_height;
-
-// 背景オブジェクトの位置
-const int num_trees = 100;
-float tree_pos[num_trees][2];
 
 // マウスのドラッグのための変数
 int drag_mouse_r = 0; // 右ボタンをドラッグ中かどうかのフラグ
@@ -48,6 +49,10 @@ const char* mode_name[] = {
 
 // 現在の視点操作モード
 ViewControlModeEnum mode = VIEW_DOLLY_PARAM;
+
+// 幾何形状オブジェクト
+struct Obj* obj = NULL;
+float object_y = 0.0f;
 
 //
 // 視点操作のための処理
@@ -195,38 +200,8 @@ void UpdateView(int delta_mouse_right_x, int delta_mouse_right_y,
 //
 
 //
-// 木を描画
-//
-void RenderTree()
-{
-    static GLUquadricObj* quad_obj = NULL;
-    if (quad_obj == NULL)
-    {
-        quad_obj = gluNewQuadric();
-    }
-
-    glPushMatrix();
-    glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-    glColor3f(0.8f, 0.7f, 0.0f);
-    gluCylinder(quad_obj, 0.25, 0.25, 1.0, 16, 1);
-    glPopMatrix();
-
-    glPushMatrix();
-    glTranslatef(0.0f, 0.5f, 0.0f);
-    glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-    glColor3f(0.3f, 0.7f, 0.3f);
-    gluCylinder(quad_obj, 0.5, 0.0, 1.0, 16, 1);
-    glPopMatrix();
-
-    glPushMatrix();
-    glTranslatef(0.0f, 1.0f, 0.0f);
-    glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-    glColor3f(0.3f, 0.7f, 0.3f);
-    gluCylinder(quad_obj, 0.5, 0.0, 1.0, 16, 1);
-    glPopMatrix();
-}
-
 // 格子模様の床を描画
+//
 void DrawFloor(int tile_size, int num_x, int num_z, float r0, float g0,
     float b0, float r1, float g1, float b1)
 {
@@ -324,26 +299,18 @@ void DisplayCallback()
     glLightfv(GL_LIGHT0, GL_POSITION, light0_position);
 
     // 格子模様の床を描画
-    DrawFloor(1, 50, 50, 1.0, 1.0, 1.0, 0.8f, 0.8f, 0.8f);
+    DrawFloor(1, 10, 10, 1.0, 1.0, 1.0, 1.0f, 0.8f, 0.8f);
 
-    // 背景の木を描画
-    int i;
-    for (i = 0; i < num_trees; i++)
+    // 幾何形状を描画
+    if (obj)
     {
-        glPushMatrix();
-        glTranslatef(tree_pos[i][0], 0.0f, tree_pos[i][1]);
-        RenderTree();
-        glPopMatrix();
-    }
+        glColor3f(1.0, 1.0, 1.0);
 
-    // 注視点にオブジェクト（球）を描画
-    if ((mode != VIEW_WALKTHROUGH_PARAM) && (mode != VIEW_WALKTHROUGH_DIRECT))
-    {
-        glPushMatrix();
-        glTranslatef(view_center_x, view_center_y + 0.5f, view_center_z);
-        glColor3f(1.0f, 0.0f, 0.0f);
-        glutSolidSphere(0.5, 24, 12);
-        glPopMatrix();
+        // 変換行列を設定
+        glTranslatef(0.0f, -object_y, 0.0f);
+
+        // 幾何形状を描画
+        RenderObj(obj);
     }
 
     // 文字情報（現在のモード名）を描画
@@ -450,10 +417,46 @@ void KeyboardCallback(unsigned char key, int mx, int my)
 
         // 視点の初期化
         InitView();
+
+        // 再描画の指示を出す
+        glutPostRedisplay();
     }
 
-    // 再描画の指示を出す
-    glutPostRedisplay();
+    // Lキーで幾何形状を読み込み
+    if (key == 'l')
+    {
+        const int file_name_len = 256;
+        char file_name[file_name_len] = "";
+
+        // ファイルダイアログの設定
+        OPENFILENAME open_file;
+        memset(&open_file, 0, sizeof(OPENFILENAME));
+        open_file.lStructSize = sizeof(OPENFILENAME);
+        open_file.hwndOwner = NULL;
+        open_file.lpstrFilter = TEXT("Obj File (*.obj)\0*.obj\0All File (*.*)\0*.*\0");
+        open_file.nFilterIndex = 1;
+        open_file.lpstrFile = file_name;
+        open_file.nMaxFile = file_name_len;
+        open_file.lpstrTitle = TEXT("Obj File");
+        open_file.lpstrDefExt = TEXT("obj");
+        open_file.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
+
+        // ファイルダイヤログを表示
+        BOOL ret = GetOpenFileName(&open_file);
+
+        // ファイルが指定されたら新しい幾何形状を読み込み
+        if (ret)
+        {
+            // 幾何形状ファイルの読み込み
+            obj = LoadObj(file_name);
+
+            // 読み込んだ幾何形状をスケーリングする
+            object_y = ScaleObj(obj, 5.0f);
+
+            // 再描画の指示を出す
+            glutPostRedisplay();
+        }
+    }
 }
 
 //
@@ -487,15 +490,6 @@ void InitEnvironment()
 
     // 背景色を設定
     glClearColor(0.5f, 0.5f, 0.8f, 0.0f);
-
-    // 背景に配置するツリーの位置をランダムに初期化
-    for (int i = 0; i < num_trees; i++)
-    {
-        for (int j = 0; j < 2; j++)
-        {
-            tree_pos[i][j] = (rand() % 1000 - 500) * 0.04f;
-        }
-    }
 }
 
 //
