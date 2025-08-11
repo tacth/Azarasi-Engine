@@ -29,22 +29,19 @@ float view_distance; // 視点と注視点の距離
 enum ViewControlModeEnum
 {
     VIEW_DOLLY_PARAM, // Dollyモード（媒介変数）
-    VIEW_DOLLY_DIRECT, // Dollyモード（直接更新）
+    // VIEW_DOLLY_DIRECT, // Dollyモード（直接更新）
     VIEW_SCROLL_PARAM, // Scrollモード（媒介変数）
-    VIEW_SCROLL_DIRECT, // Scrollモード（直接更新）
+    // VIEW_SCROLL_DIRECT, // Scrollモード（直接更新）
     VIEW_WALKTHROUGH_PARAM, // Walkthroughモード（媒介変数）
-    VIEW_WALKTHROUGH_DIRECT, // Walkthroughモード（直接更新）
+    // VIEW_WALKTHROUGH_DIRECT, // Walkthroughモード（直接更新）
     NUM_VIEW_CONTROL_MODES // 視点操作モードの種類数
 };
 
 // 視点操作モードの名前
 const char* mode_name[] = {
     "Dolly Mode ( Parameter )",
-    "Dolly Mode ( Direct ) *in development",
-    "Scroll Mode ( Parameter ) *in development",
-    "Scroll Mode ( Direct ) *in development",
-    "Walkthrough Mode ( Parameter ) *in development",
-    "Walkthrough Mode ( Direct ) *in development"
+    "Scroll Mode ( Parameter )",
+    "Walkthrough Mode ( Parameter )",
 };
 
 // 現在の視点操作モード
@@ -93,34 +90,38 @@ void InitView()
     }
 
     // 変換行列を初期化
-    if (mode == VIEW_DOLLY_DIRECT)
-    {
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-        glTranslatef(0.0, 0.0, -15.0);
-        glRotatef(30.0, 1.0, 0.0, 0.0);
-        glRotatef(30.0, 0.0, 1.0, 0.0);
-    }
-    if (mode == VIEW_SCROLL_DIRECT)
-    {
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-        glTranslatef(0.0, 0.0, -15.0);
-        glRotatef(30.0, 1.0, 0.0, 0.0);
-        glRotatef(0.0, 0.0, 1.0, 0.0);
+    //if (mode == VIEW_DOLLY_DIRECT)
+    //{
+    //    glMatrixMode(GL_MODELVIEW);
+    //    glLoadIdentity();
+    //    glTranslatef(0.0, 0.0, -15.0);
+    //    glRotatef(30.0, 1.0, 0.0, 0.0);
+    //    glRotatef(30.0, 0.0, 1.0, 0.0);
 
-        view_center_x = 0.0f;
-        view_center_y = 0.0f;
-        view_center_z = 0.0f;
-    }
-    if (mode == VIEW_WALKTHROUGH_DIRECT)
-    {
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-        glTranslatef(0.0, -0.5, 0.0);
-        glRotatef(0.0, 1.0, 0.0, 0.0);
-        glRotatef(0.0, 0.0, 1.0, 0.0);
-    }
+    //    view_center_x = 0.0f;
+    //    view_center_y = 0.0f;
+    //    view_center_z = 0.0f;
+    //}
+    //if (mode == VIEW_SCROLL_DIRECT)
+    //{
+    //    glMatrixMode(GL_MODELVIEW);
+    //    glLoadIdentity();
+    //    glTranslatef(0.0, 0.0, -15.0);
+    //    glRotatef(30.0, 1.0, 0.0, 0.0);
+    //    glRotatef(0.0, 0.0, 1.0, 0.0);
+
+    //    view_center_x = 0.0f;
+    //    view_center_y = 0.0f;
+    //    view_center_z = 0.0f;
+    //}
+    //if (mode == VIEW_WALKTHROUGH_DIRECT)
+    //{
+    //    glMatrixMode(GL_MODELVIEW);
+    //    glLoadIdentity();
+    //    glTranslatef(0.0, -0.5, 0.0);
+    //    glRotatef(0.0, 1.0, 0.0, 0.0);
+    //    glRotatef(0.0, 0.0, 1.0, 0.0);
+    //}
 }
 
 //
@@ -152,7 +153,7 @@ void UpdateView(int delta_mouse_right_x, int delta_mouse_right_y,
         // 横方向の右ボタンドラッグに応じて、視点を水平方向に回転
         if (delta_mouse_right_x != 0)
         {
-            view_yaw -= delta_mouse_right_x * 1;
+            view_yaw -= delta_mouse_right_x * 1.0f;
 
             // パラメタの値が所定の範囲を超えないように修正
             if (view_yaw < 0)
@@ -168,7 +169,7 @@ void UpdateView(int delta_mouse_right_x, int delta_mouse_right_y,
         // 縦方向の右ボタンドラッグに応じて、視点を上下方向に回転
         if (delta_mouse_right_y != 0)
         {
-            view_pitch -= delta_mouse_right_y * 1;
+            view_pitch -= delta_mouse_right_y * 1.0f;
 
             // パラメタの値が所定の範囲を超えないように修正
             if (view_pitch < -90)
@@ -191,6 +192,76 @@ void UpdateView(int delta_mouse_right_x, int delta_mouse_right_y,
             {
 				view_distance = 5;
             }
+        }
+    }
+
+    // 視点パラメタを更新（Scrollモード・媒介変数）
+    if (mode == VIEW_SCROLL_PARAM)
+    {
+        // 縦方向の右ボタンドラッグに応じて、視点を上下方向に回転
+        if (delta_mouse_right_y != 0)
+        {
+            view_pitch -= delta_mouse_right_y * 1.0f;
+
+            // パラメタの値が所定の範囲を超えないように修正
+            if (view_pitch < -90)
+            {
+                view_pitch = -90;
+            }
+            else if (view_pitch > -2)
+            {
+                view_pitch = -2;
+            }
+        }
+
+        // 左ボタンドラッグに応じて、視点を前後左右に移動
+        // （ワールド座標を基準とした前後左右）
+        if ((delta_mouse_left_x != 0) || delta_mouse_left_y != 0)
+        {
+            view_center_x += -delta_mouse_left_x * 0.1f;
+            view_center_z += -delta_mouse_left_y * 0.1f;
+        }
+    }
+
+    // 視点パラメタを更新（Walkthroughモード・媒介変数）
+    if (mode == VIEW_WALKTHROUGH_PARAM)
+    {
+        // 横方向の右ボタンドラッグに応じて、視点を水平方向に回転
+        if (delta_mouse_right_x != 0)
+        {
+            view_yaw -= delta_mouse_right_x * 1.0f;
+
+            // パラメタの値が所定の範囲を超えないように修正
+            if (view_yaw < 0)
+            {
+                view_yaw += 360;
+            }
+            else if (view_yaw > 360)
+            {
+                view_yaw -= 360;
+            }
+        }
+
+        // 左ボタンドラッグに応じて、視点を前後左右に移動
+        // （カメラの向きを基準とした前後左右）
+        if ((delta_mouse_left_x != 0) || (delta_mouse_left_y != 0))
+        {
+            // 左右の移動量、前後の移動量を計算
+            float dz, dx;
+            dz = delta_mouse_left_x * 0.1f;
+            dx = delta_mouse_left_y * 0.1f;
+
+            // 現在の変換行列（カメラの向き）を取得
+            float m[16];
+            glGetFloatv(GL_MODELVIEW_MATRIX, m);
+
+            // ワールド座標系でのカメラの移動量を計算（前後方向）
+            view_center_x += m[2] * dx;
+            view_center_z += m[10] * dx;
+
+            // ワールド座標系でのカメラの移動量を計算（左右方向）
+            view_center_x += m[0] * dz;
+            view_center_z += m[8] * dz;
         }
     }
 }
@@ -299,7 +370,7 @@ void DisplayCallback()
     glLightfv(GL_LIGHT0, GL_POSITION, light0_position);
 
     // 格子模様の床を描画
-    DrawFloor(1, 10, 10, 1.0, 1.0, 1.0, 1.0f, 0.8f, 0.8f);
+    DrawFloor(1, 10, 10, 1.0, 1.0, 1.0, 0.8f, 0.8f, 0.8f);
 
     // 幾何形状を描画
     if (obj)

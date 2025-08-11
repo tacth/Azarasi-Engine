@@ -1,7 +1,7 @@
-﻿  obj.cpp
+﻿  main.cpp
   コード生成しています。
-  1 of 22 functions ( 4.5%) were compiled, the rest were copied from previous compilation.
+  9 of 22 functions (40.9%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    1 functions had inline decision re-evaluated but remain unchanged
+    0 functions had inline decision re-evaluated but remain unchanged
   コード生成が終了しました。
   Azarasi Engine.vcxproj -> C:\Users\takut\source\repos\Azarasi Engine\x64\Release\Azarasi Engine.exe
