@@ -29,12 +29,16 @@ float view_distance; // 視点と注視点の距離
 enum ViewControlModeEnum
 {
     VIEW_DOLLY_PARAM, // Dollyモード（媒介変数）
-    // VIEW_DOLLY_DIRECT, // Dollyモード（直接更新）
-    VIEW_SCROLL_PARAM, // Scrollモード（媒介変数）
-    // VIEW_SCROLL_DIRECT, // Scrollモード（直接更新）
-    VIEW_WALKTHROUGH_PARAM, // Walkthroughモード（媒介変数）
-    // VIEW_WALKTHROUGH_DIRECT, // Walkthroughモード（直接更新）
     NUM_VIEW_CONTROL_MODES // 視点操作モードの種類数
+};
+
+enum UnusedViewControlModeEnum
+{
+    VIEW_DOLLY_DIRECT, // Dollyモード（直接更新）
+    VIEW_SCROLL_PARAM, // Scrollモード（媒介変数）
+    VIEW_SCROLL_DIRECT, // Scrollモード（直接更新）
+    VIEW_WALKTHROUGH_PARAM, // Walkthroughモード（媒介変数）
+    VIEW_WALKTHROUGH_DIRECT, // Walkthroughモード（直接更新）
 };
 
 // 視点操作モードの名前
@@ -90,38 +94,38 @@ void InitView()
     }
 
     // 変換行列を初期化
-    //if (mode == VIEW_DOLLY_DIRECT)
-    //{
-    //    glMatrixMode(GL_MODELVIEW);
-    //    glLoadIdentity();
-    //    glTranslatef(0.0, 0.0, -15.0);
-    //    glRotatef(30.0, 1.0, 0.0, 0.0);
-    //    glRotatef(30.0, 0.0, 1.0, 0.0);
+    if (mode == VIEW_DOLLY_DIRECT)
+    {
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        glTranslatef(0.0, 0.0, -15.0);
+        glRotatef(30.0, 1.0, 0.0, 0.0);
+        glRotatef(30.0, 0.0, 1.0, 0.0);
 
-    //    view_center_x = 0.0f;
-    //    view_center_y = 0.0f;
-    //    view_center_z = 0.0f;
-    //}
-    //if (mode == VIEW_SCROLL_DIRECT)
-    //{
-    //    glMatrixMode(GL_MODELVIEW);
-    //    glLoadIdentity();
-    //    glTranslatef(0.0, 0.0, -15.0);
-    //    glRotatef(30.0, 1.0, 0.0, 0.0);
-    //    glRotatef(0.0, 0.0, 1.0, 0.0);
+        view_center_x = 0.0f;
+        view_center_y = 0.0f;
+        view_center_z = 0.0f;
+    }
+    if (mode == VIEW_SCROLL_DIRECT)
+    {
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        glTranslatef(0.0, 0.0, -15.0);
+        glRotatef(30.0, 1.0, 0.0, 0.0);
+        glRotatef(0.0, 0.0, 1.0, 0.0);
 
-    //    view_center_x = 0.0f;
-    //    view_center_y = 0.0f;
-    //    view_center_z = 0.0f;
-    //}
-    //if (mode == VIEW_WALKTHROUGH_DIRECT)
-    //{
-    //    glMatrixMode(GL_MODELVIEW);
-    //    glLoadIdentity();
-    //    glTranslatef(0.0, -0.5, 0.0);
-    //    glRotatef(0.0, 1.0, 0.0, 0.0);
-    //    glRotatef(0.0, 0.0, 1.0, 0.0);
-    //}
+        view_center_x = 0.0f;
+        view_center_y = 0.0f;
+        view_center_z = 0.0f;
+    }
+    if (mode == VIEW_WALKTHROUGH_DIRECT)
+    {
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        glTranslatef(0.0, -0.5, 0.0);
+        glRotatef(0.0, 1.0, 0.0, 0.0);
+        glRotatef(0.0, 0.0, 1.0, 0.0);
+    }
 }
 
 //
